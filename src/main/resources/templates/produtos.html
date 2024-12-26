@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista de Produtos</title>
+</head>
+<body>
+
+    <h1>Produtos</h1>
+
+    <form th:action="@{/produtos/salvar}" method="POST">
+        <div th:each="produto, iterStat : ${produtos}">
+            <input type="hidden" th:name="produtos[__${iterStat.index}__].descricao" th:value="${produto.descricao}" />
+            <input type="hidden" th:name="produtos[__${iterStat.index}__].preco" th:value="${produto.preco}" />
+            <p>Nome: <span th:text="${produto.descricao}"></span></p>
+            <p>Preço: <span th:text="${produto.preco}"></span></p>
+        </div>
+        <button type="submit">Salvar Produtos</button>
+    </form>
+
+</body>
+</html>

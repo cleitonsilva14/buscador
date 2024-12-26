@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link th:href="@{bootstrap.min.css}" rel="stylesheet">
+  <link rel="icon" href="https://getbootstrap.com/docs/5.0/assets/img/favicons/favicon-16x16.png" sizes="16x16"
+    type="image/png">
+  <title>Buscador</title>
+</head>
+
+<body>
+
+  <main class="container mt-5">
+    <form class="row g-3">
+
+
+      <div class="col-2">
+        <label for="codigo" class="form-label">Código</label>
+        <input type="number" value="0" placeholder="" min="0" class="form-control" id="codigo">
+      </div>
+      <div class="col-7">
+        <label for="descricao" class="form-label">Descrição</label>
+        <input type="text" class="form-control" id="descricao" readonly>
+      </div>
+
+      <div class="col-2">
+        <label for="preco" class="form-label">Preço</label>
+        <input type="number" step="0.01" class="form-control" id="preco" readonly>
+      </div>
+
+      <div class="col-1">
+        <label for="quantidade" class="form-label">Quantidade</label>
+        <input type="number" step="1" class="form-control" id="quantidade">
+      </div>
+
+      <div class="form-row">
+        <button type="button" id="btnBuscar" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search"
+            viewBox="0 0 16 16">
+            <path
+              d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+          </svg>
+          Buscar</button>
+      </div>
+
+      <div class="form-row">
+        <button type="button" id="btnAdicionar" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
+          </svg>
+          Adicionar</button>
+      </div>
+
+      <div class="form-row">
+        <button type="button" id="btnSend" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send"
+            viewBox="0 0 16 16">
+            <path
+              d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
+          </svg>
+          Enviar</button>
+      </div>
+    </form>
+  </main>
+
+
+
+
+
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script th:src="@{bootstrap.bundle.min.js}"></script>
+
+  <script>
+    const codigo = document.getElementById("codigo")
+    const descricao = document.getElementById("descricao")
+    const preco = document.getElementById("preco")
+    const quantidade = document.getElementById("quantidade")
+
+    const buttonSearch = document.getElementById("btnBuscar")
+    const buttonAdd = document.getElementById("btnAdicionar")
+
+    let itens = []
+    let produtoCodigo
+    let produtoDescricao
+    let produtoPreco
+    let produtoQuantidade
+    let produtoTotal
+
+    function fetchCodigo() {
+
+      let x = Number.parseInt(codigo.value);
+      console.log(x)
+
+      if (x === 0 || isNaN(x)) {
+        alert("informar código válido")
+        return
+      } else {
+        fetch(`/search/${x}`, {
+          method: "GET"
+        })
+          .then(response => {
+            if (!response.ok) {
+              alert("erro")
+            }
+            return response.json();
+          })
+          .then(data => {
+
+            codigo.value = data.codigo
+            descricao.value = data.descricao
+            preco.value = data.preco
+            //quantidade.value = data.quantidade
+
+            produtoCodigo = data.codigo
+            produtoDescricao = data.descricao
+            produtoPreco = data.preco
+            produtoQuantidade = Number.parseInt(quantidade.value)
+            produtoTotal = produtoPreco * produtoQuantidade
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
+
+
+
+    }
+
+    codigo.addEventListener("keypress", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault()
+        fetchCodigo()
+      }
+    })
+
+
+    buttonSearch.addEventListener("click", fetchCodigo)
+
+    buttonAdd.addEventListener("click", () => {
+
+      itens.push({
+        codigo: produtoCodigo,
+        descricao: produtoDescricao,
+        preco: produtoPreco,
+        quantidade: Number.parseInt(quantidade.value),
+        total: produtoTotal
+      })
+
+      console.log(itens)
+    })
+
+
+    btnSend.addEventListener("click", () => {
+      // Enviando os dados para o backend
+      fetch('/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(itens)
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Resposta do servidor:', data);
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+        });
+    })
+
+
+  </script>
+
+
+</body>
+
+</html>
